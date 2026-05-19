@@ -738,7 +738,7 @@ async function loadBanners() {
         link: r.c?.[2]?.v || '',      // column C = ลิงก์
         caption: r.c?.[3]?.v || ''    // column D = คำบรรยาย
       }))
-      .filter(b => b.img && b.img.startsWith('http'));
+      .filter(b => b.img && b.img.length > 10);
   } catch(e) {
     console.log('No banners:', e);
     bannerData = [];
