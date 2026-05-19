@@ -58,7 +58,20 @@
   .banner-wrap {
     width: 100%; overflow: hidden; position: relative;
     background: var(--primary);
-    aspect-ratio: 4 / 3;
+    /* คอมจอใหญ่ — เตี้ยแบบ Siam */
+    aspect-ratio: 3 / 1;
+  }
+  /* Tablet / หน้าต่างกลาง */
+  @media (max-width: 1024px) {
+    .banner-wrap { aspect-ratio: 5 / 2; }
+  }
+  /* มือถือ landscape */
+  @media (max-width: 768px) {
+    .banner-wrap { aspect-ratio: 2 / 1; }
+  }
+  /* มือถือ portrait — เห็นรูปชัด ไม่ตัด */
+  @media (max-width: 480px) {
+    .banner-wrap { aspect-ratio: 3 / 2; }
   }
   .banner-track {
     display: flex; transition: transform 0.5s ease;
