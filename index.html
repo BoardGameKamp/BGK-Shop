@@ -931,7 +931,7 @@ function convertDriveUrl(url) {
     const m2 = url.match(/id=([a-zA-Z0-9_-]+)/);
     if (m2) fileId = m2[1];
   }
-  if (fileId) return 'https://lh3.googleusercontent.com/d/' + fileId;
+  if (fileId) return 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1200';
   if (url.includes('googleusercontent.com')) return url;
   return url;
 }
