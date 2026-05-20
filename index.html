@@ -65,10 +65,10 @@
     .banner-wrap { aspect-ratio: 5 / 2; }
   }
   @media (max-width: 768px) {
-    .banner-wrap { aspect-ratio: 2 / 1; }
+    .banner-wrap { aspect-ratio: 3 / 2; }
   }
   @media (max-width: 480px) {
-    .banner-wrap { aspect-ratio: 16 / 9; }
+    .banner-wrap { aspect-ratio: 4 / 3; }
   }
   .banner-track {
     display: flex; transition: transform 0.5s ease;
@@ -83,7 +83,7 @@
     object-position: center;
   }
   @media (max-width: 768px) {
-    .banner-slide img { object-fit: contain; background: var(--primary); }
+    .banner-slide img { object-fit: contain; background: #0f0f1a; }
   }
   .banner-slide .banner-empty {
     width: 100%; height: 100%;
@@ -759,7 +759,7 @@ function renderBanners() {
   if (!bannerData.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
-  const isMobile = window.innerWidth <= 768;
+  const isMobile = window.innerWidth <= 1024;
   track.innerHTML = bannerData.map((b, i) => {
     const hasMobileImg = b.imgMobile && b.imgMobile.length > 10;
     const hasDesktopImg = b.img && b.img.length > 10;
