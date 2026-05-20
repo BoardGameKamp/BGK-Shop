@@ -755,9 +755,10 @@ function renderBanners() {
   if (!bannerData.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
-  const isMobile = window.innerWidth <= 768;
+  const isMobile = window.innerWidth <= 1024;
   track.innerHTML = bannerData.map((b, i) => {
-    const imgSrc = (isMobile && b.imgMobile && b.imgMobile.startsWith('http'))
+    const hasMobileImg = b.imgMobile && b.imgMobile.length > 10;
+    const imgSrc = (isMobile && hasMobileImg)
       ? convertDriveUrl(b.imgMobile)
       : convertDriveUrl(b.img);
     const onclick = b.link ? "window.open('" + b.link + "','_blank')" : '';
