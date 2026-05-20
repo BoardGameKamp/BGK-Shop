@@ -58,32 +58,16 @@
   .banner-wrap {
     width: 100%; overflow: hidden; position: relative;
     background: var(--primary);
-    /* คอมจอใหญ่ — เตี้ยแบบ Siam */
-    aspect-ratio: 3 / 1;
-  }
-  @media (max-width: 1024px) {
-    .banner-wrap { aspect-ratio: 5 / 2; }
-  }
-  @media (max-width: 768px) {
-    .banner-wrap { aspect-ratio: 3 / 2; }
-  }
-  @media (max-width: 480px) {
-    .banner-wrap { aspect-ratio: 4 / 3; }
   }
   .banner-track {
     display: flex; transition: transform 0.5s ease;
-    height: 100%;
   }
   .banner-slide {
-    min-width: 100%; height: 100%; position: relative;
+    min-width: 100%; position: relative;
     overflow: hidden; flex-shrink: 0;
   }
   .banner-slide img {
-    width: 100%; height: 100%; object-fit: cover;
-    object-position: center;
-  }
-  @media (max-width: 768px) {
-    .banner-slide img { object-fit: contain; background: #0f0f1a; }
+    width: 100%; height: auto; display: block;
   }
   .banner-slide .banner-empty {
     width: 100%; height: 100%;
@@ -810,6 +794,20 @@ function updateBannerPos() {
   const dots = document.querySelectorAll('.banner-dot');
   if (track) track.style.transform = `translateX(-${bannerIndex * 100}%)`;
   dots.forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
+  // ปรับ banner-wrap height ตามรูปที่แสดงอยู่
+  const imgs = track.querySelectorAll('img');
+  if (imgs[bannerIndex]) {
+    const img = imgs[bannerIndex];
+    if (img.complete && img.naturalHeight > 0) {
+      const h = img.offsetWidth * img.naturalHeight / img.naturalWidth;
+      document.getElementById('bannerWrap').style.height = h + 'px';
+    } else {
+      img.onload = () => {
+        const h = img.offsetWidth * img.naturalHeight / img.naturalWidth;
+        document.getElementById('bannerWrap').style.height = h + 'px';
+      };
+    }
+  }
 }
 // ────────────────────────────────────────────────────────────
 
