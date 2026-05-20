@@ -732,12 +732,16 @@ async function loadBanners() {
     const json = JSON.parse(jsonStr);
     const rows = json.table?.rows || [];
     bannerData = rows
-      .map(r => ({
-        img: r.c?.[0]?.v || '',       // column A = รูปคอม
-        imgMobile: r.c?.[1]?.v || '', // column B = รูปมือถือ
-        link: r.c?.[2]?.v || '',      // column C = ลิงก์
-        caption: r.c?.[3]?.v || ''    // column D = คำบรรยาย
-      }))
+      .map(r => {
+        // gviz คืน .v สำหรับ value, .f สำหรับ formatted — ลองทั้งคู่
+        const getCell = (c) => (c?.v != null ? String(c.v) : '') || (c?.f != null ? String(c.f) : '') || '';
+        const img       = getCell(r.c?.[0]);
+        const imgMobile = getCell(r.c?.[1]);
+        const link      = getCell(r.c?.[2]);
+        const caption   = getCell(r.c?.[3]);
+        console.log('🖼 Banner row:', { img: img.slice(0,60), imgMobile: imgMobile.slice(0,60) });
+        return { img, imgMobile, link, caption };
+      })
       .filter(b => (b.img && b.img.length > 10) || (b.imgMobile && b.imgMobile.length > 10));
   } catch(e) {
     console.log('No banners:', e);
