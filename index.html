@@ -738,7 +738,7 @@ async function loadBanners() {
         link: r.c?.[2]?.v || '',      // column C = ลิงก์
         caption: r.c?.[3]?.v || ''    // column D = คำบรรยาย
       }))
-      .filter(b => b.img && b.img.length > 10);
+      .filter(b => (b.img && b.img.length > 10) || (b.imgMobile && b.imgMobile.length > 10));
   } catch(e) {
     console.log('No banners:', e);
     bannerData = [];
@@ -755,12 +755,15 @@ function renderBanners() {
   if (!bannerData.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
-  const isMobile = window.innerWidth <= 1024;
+  const isMobile = window.innerWidth <= 768;
   track.innerHTML = bannerData.map((b, i) => {
     const hasMobileImg = b.imgMobile && b.imgMobile.length > 10;
+    const hasDesktopImg = b.img && b.img.length > 10;
     const imgSrc = (isMobile && hasMobileImg)
       ? convertDriveUrl(b.imgMobile)
-      : convertDriveUrl(b.img);
+      : hasDesktopImg
+        ? convertDriveUrl(b.img)
+        : convertDriveUrl(b.imgMobile);
     const onclick = b.link ? "window.open('" + b.link + "','_blank')" : '';
     const cursor = b.link ? 'cursor:pointer' : '';
     const caption = b.caption
