@@ -760,11 +760,16 @@ function renderBanners() {
     const imgSrc = (isMobile && b.imgMobile && b.imgMobile.startsWith('http'))
       ? convertDriveUrl(b.imgMobile)
       : convertDriveUrl(b.img);
-    return `<div class="banner-slide" onclick="${b.link ? `window.open('${b.link}','_blank')` : ''}" style="${b.link ? 'cursor:pointer' : ''}">
-      <img src="${imgSrc}" alt="banner ${i+1}" onerror="this.parentElement.style.display='none'">
-      ${b.caption ? `<div style="position:absolute;bottom:0;left:0;right:0;padding:1rem 1.5rem;background:linear-gradient(transparent,rgba(0,0,0,0.7));color:white;font-size:1rem;font-weight:600;">${b.caption}</div>` : ''}
-    </div>
-  `).join('');
+    const onclick = b.link ? "window.open('" + b.link + "','_blank')" : '';
+    const cursor = b.link ? 'cursor:pointer' : '';
+    const caption = b.caption
+      ? '<div style="position:absolute;bottom:0;left:0;right:0;padding:1rem 1.5rem;background:linear-gradient(transparent,rgba(0,0,0,0.7));color:white;font-size:1rem;font-weight:600;">' + b.caption + '</div>'
+      : '';
+    return '<div class="banner-slide" onclick="' + onclick + '" style="' + cursor + '">'
+      + '<img src="' + imgSrc + '" alt="banner ' + (i+1) + '" onerror="this.parentElement.style.display=\'none\'">'
+      + caption
+      + '</div>';
+  }).join('');
 
   dots.innerHTML = bannerData.map((_, i) =>
     `<button class="banner-dot ${i===0?'active':''}" onclick="bannerGo(${i})"></button>`
