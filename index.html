@@ -69,6 +69,13 @@
   .banner-slide img {
     width: 100%; height: auto; display: block;
   }
+  @media (max-width: 768px) {
+    .banner-slide img {
+      object-fit: contain;
+      width: 100%;
+      height: auto;
+    }
+  }
   .banner-slide .banner-empty {
     width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center;
@@ -718,7 +725,14 @@ async function loadBanners() {
     bannerData = rows
       .map(r => {
         // gviz คืน .v สำหรับ value, .f สำหรับ formatted — ลองทั้งคู่
-        const getCell = (c) => (c?.v != null ? String(c.v) : '') || (c?.f != null ? String(c.f) : '') || '';
+        const getCell = (c) => {
+          if (!c) return '';
+          if (c.p?.url) return String(c.p.url);  // hyperlink
+          if (c.v != null && String(c.v).startsWith('http')) return String(c.v);
+          if (c.f != null && String(c.f).startsWith('http')) return String(c.f);
+          if (c.v != null) return String(c.v);
+          return '';
+        };
         const img       = getCell(r.c?.[0]);
         const imgMobile = getCell(r.c?.[1]);
         const link      = getCell(r.c?.[2]);
@@ -875,6 +889,8 @@ async function fetchAndCache() {
     const getVal = (row, j) => {
       if (j < 0 || !row.c || j >= row.c.length || !row.c[j]) return '';
       const cell = row.c[j];
+      // hyperlink URL อาจซ่อนอยู่ใน p.url (gviz เก็บ hyperlink ไว้ที่นี่)
+      if (cell.p?.url) return String(cell.p.url).trim();
       if (cell.v !== null && cell.v !== undefined) return String(cell.v).trim();
       return (cell.f || '').trim();
     };
