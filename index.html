@@ -61,20 +61,15 @@
   }
   .banner-track {
     display: flex; transition: transform 0.5s ease;
+    will-change: transform;
   }
   .banner-slide {
     min-width: 100%; position: relative;
-    overflow: hidden; flex-shrink: 0;
+    flex-shrink: 0;
   }
   .banner-slide img {
     width: 100%; height: auto; display: block;
-  }
-  @media (max-width: 768px) {
-    .banner-slide img {
-      object-fit: contain;
-      width: 100%;
-      height: auto;
-    }
+    max-width: 100%;
   }
   .banner-slide .banner-empty {
     width: 100%; height: 100%;
@@ -757,10 +752,11 @@ function renderBanners() {
   if (!bannerData.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
-  const isMobile = window.innerWidth <= 1024;
+  const isMobile = window.innerWidth <= 768;
   track.innerHTML = bannerData.map((b, i) => {
     const hasMobileImg = b.imgMobile && b.imgMobile.length > 10;
     const hasDesktopImg = b.img && b.img.length > 10;
+    // มือถือ: ใช้ B ถ้ามี, ถ้าไม่มีใช้ A / คอม: ใช้ A เสมอ
     const imgSrc = (isMobile && hasMobileImg)
       ? convertDriveUrl(b.imgMobile)
       : hasDesktopImg
@@ -808,20 +804,6 @@ function updateBannerPos() {
   const dots = document.querySelectorAll('.banner-dot');
   if (track) track.style.transform = `translateX(-${bannerIndex * 100}%)`;
   dots.forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
-  // ปรับ banner-wrap height ตามรูปที่แสดงอยู่
-  const imgs = track.querySelectorAll('img');
-  if (imgs[bannerIndex]) {
-    const img = imgs[bannerIndex];
-    if (img.complete && img.naturalHeight > 0) {
-      const h = img.offsetWidth * img.naturalHeight / img.naturalWidth;
-      document.getElementById('bannerWrap').style.height = h + 'px';
-    } else {
-      img.onload = () => {
-        const h = img.offsetWidth * img.naturalHeight / img.naturalWidth;
-        document.getElementById('bannerWrap').style.height = h + 'px';
-      };
-    }
-  }
 }
 // ────────────────────────────────────────────────────────────
 
