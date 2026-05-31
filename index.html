@@ -722,20 +722,17 @@ async function loadBanners() {
         // gviz คืน .v สำหรับ value, .f สำหรับ formatted — ลองทั้งคู่
         const getCell = (c) => {
           if (!c) return '';
-          if (c.p?.url) return String(c.p.url);  // hyperlink
+          if (c.p?.url) return String(c.p.url);
           if (c.v != null && String(c.v).startsWith('http')) return String(c.v);
           if (c.f != null && String(c.f).startsWith('http')) return String(c.f);
           if (c.v != null) return String(c.v);
           return '';
         };
-        const img       = getCell(r.c?.[0]);
-        const imgMobile = getCell(r.c?.[1]);
-        const link      = getCell(r.c?.[2]);
-        const caption   = getCell(r.c?.[3]);
-        console.log('🖼 Banner row:', { img: img.slice(0,60), imgMobile: imgMobile.slice(0,60) });
-        return { img, imgMobile, link, caption };
+        const img  = getCell(r.c?.[0]); // column A = รูปเดียวใช้ทั้งคอมและมือถือ
+        const link = getCell(r.c?.[1]); // column B = ลิงก์ (ถ้ามี)
+        return { img, imgMobile: '', link, caption: '' };
       })
-      .filter(b => (b.img && b.img.length > 10) || (b.imgMobile && b.imgMobile.length > 10));
+      .filter(b => b.img && b.img.length > 10);
   } catch(e) {
     console.log('No banners:', e);
     bannerData = [];
@@ -752,16 +749,8 @@ function renderBanners() {
   if (!bannerData.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
-  const isMobile = window.innerWidth <= 768;
   track.innerHTML = bannerData.map((b, i) => {
-    const hasMobileImg = b.imgMobile && b.imgMobile.length > 10;
-    const hasDesktopImg = b.img && b.img.length > 10;
-    // มือถือ: ใช้ B ถ้ามี, ถ้าไม่มีใช้ A / คอม: ใช้ A เสมอ
-    const imgSrc = (isMobile && hasMobileImg)
-      ? convertDriveUrl(b.imgMobile)
-      : hasDesktopImg
-        ? convertDriveUrl(b.img)
-        : convertDriveUrl(b.imgMobile);
+    const imgSrc = convertDriveUrl(b.img);
     const onclick = b.link ? "window.open('" + b.link + "','_blank')" : '';
     const cursor = b.link ? 'cursor:pointer' : '';
     const caption = b.caption
