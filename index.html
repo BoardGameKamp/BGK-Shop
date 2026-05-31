@@ -69,14 +69,6 @@
   }
   .banner-slide img {
     width: 100%; height: auto; display: block;
-    max-width: 100%;
-  }
-  @media (max-width: 768px) {
-    .banner-slide img {
-      width: 100%;
-      height: auto;
-      object-fit: contain;
-    }
   }
   .banner-slide .banner-empty {
     width: 100%; height: 100%;
@@ -788,6 +780,9 @@ function bannerMove(dir) {
   bannerTimer = setInterval(() => bannerMove(1), 5000);
 }
 
+// อัพเดท slide width เมื่อ resize หน้าจอ
+window.addEventListener('resize', updateBannerPos);
+
 function bannerGo(i) {
   bannerIndex = i;
   updateBannerPos();
@@ -797,8 +792,17 @@ function bannerGo(i) {
 
 function updateBannerPos() {
   const track = document.getElementById('bannerTrack');
+  const wrap = document.getElementById('bannerWrap');
   const dots = document.querySelectorAll('.banner-dot');
-  if (track) track.style.transform = `translateX(-${bannerIndex * 100}%)`;
+  if (track && wrap) {
+    const w = wrap.offsetWidth;
+    // กำหนดความกว้างของแต่ละ slide ให้เท่ากับ wrap จริงๆ
+    Array.from(track.querySelectorAll('.banner-slide')).forEach(slide => {
+      slide.style.width = w + 'px';
+      slide.style.minWidth = w + 'px';
+    });
+    track.style.transform = `translateX(-${bannerIndex * w}px)`;
+  }
   dots.forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
 }
 // ────────────────────────────────────────────────────────────
