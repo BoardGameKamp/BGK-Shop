@@ -768,13 +768,23 @@ async function loadBanners() {
     const json = JSON.parse(jsonStr);
     const rows = json.table?.rows || [];
     bannerData = rows
-      .map(r => ({
-        img: r.c?.[0]?.v || '',       // column A = รูปคอม
-        imgMobile: r.c?.[1]?.v || '', // column B = รูปมือถือ
-        link: r.c?.[2]?.v || '',      // column C = ลิงก์
-        caption: r.c?.[3]?.v || ''    // column D = คำบรรยาย
-      }))
+      .map(r => {
+        // ดึง URL จากทั้ง .v, .f และ .p.url (รองรับ plain text และ hyperlink)
+        const getUrl = (cell) => {
+          if (!cell) return '';
+          if (cell.p?.url) return String(cell.p.url);
+          if (cell.v != null && String(cell.v).startsWith('http')) return String(cell.v);
+          if (cell.f != null && String(cell.f).startsWith('http')) return String(cell.f);
+          if (cell.v != null) return String(cell.v);
+          return '';
+        };
+        const img  = getUrl(r.c?.[0]); // A = รูป
+        const link = getUrl(r.c?.[1]); // B = ลิงก์
+        console.log('🖼 Banner:', img.slice(0,60), '| link:', link.slice(0,40));
+        return { img, imgMobile: '', link, caption: '' };
+      })
       .filter(b => b.img && b.img.length > 10);
+    console.log('✅ Banner count:', bannerData.length);
   } catch(e) {
     console.log('No banners:', e);
     bannerData = [];
@@ -791,12 +801,8 @@ function renderBanners() {
   if (!bannerData.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
-  const isMobile = window.innerWidth <= 1024;
   track.innerHTML = bannerData.map((b, i) => {
-    const hasMobileImg = b.imgMobile && b.imgMobile.length > 10;
-    const imgSrc = (isMobile && hasMobileImg)
-      ? convertDriveUrl(b.imgMobile)
-      : convertDriveUrl(b.img);
+    const imgSrc = convertDriveUrl(b.img);
     const onclick = b.link ? "window.open('" + b.link + "','_blank')" : '';
     const cursor = b.link ? 'cursor:pointer' : '';
     const caption = b.caption
