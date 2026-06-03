@@ -2,14 +2,6 @@
 <html lang="th" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<!-- PWA Meta Tags -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BGK Shop">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a1a2e">
-<link rel="apple-touch-icon" href="https://boardgamekamp.github.io/apple-touch-icon.png">
-<link rel="manifest" href="https://boardgamekamp.github.io/BGK-Shop/manifest.json">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7GK8B88DTR"></script>
 <script>
@@ -66,17 +58,32 @@
   .banner-wrap {
     width: 100%; overflow: hidden; position: relative;
     background: var(--primary);
+    /* คอมจอใหญ่ — เตี้ยแบบ Siam */
+    aspect-ratio: 3 / 1;
+  }
+  @media (max-width: 1024px) {
+    .banner-wrap { aspect-ratio: 5 / 2; }
+  }
+  @media (max-width: 768px) {
+    .banner-wrap { aspect-ratio: 2 / 1; }
+  }
+  @media (max-width: 480px) {
+    .banner-wrap { aspect-ratio: 16 / 9; }
   }
   .banner-track {
     display: flex; transition: transform 0.5s ease;
-    will-change: transform;
+    height: 100%;
   }
   .banner-slide {
-    min-width: 100%; position: relative;
-    flex-shrink: 0;
+    min-width: 100%; height: 100%; position: relative;
+    overflow: hidden; flex-shrink: 0;
   }
   .banner-slide img {
-    width: 100%; height: auto; display: block;
+    width: 100%; height: 100%; object-fit: cover;
+    object-position: center;
+  }
+  @media (max-width: 768px) {
+    .banner-slide img { object-fit: contain; background: var(--primary); }
   }
   .banner-slide .banner-empty {
     width: 100%; height: 100%;
@@ -500,7 +507,16 @@
   @media (max-width: 640px) {
     .header-inner { gap: 0.6rem; }
     .logo-text .logo-sub { display: none; }
-    .product-grid { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); }
+    .product-grid { grid-template-columns: repeat(5, 1fr); gap: 0.3rem; }
+    .product-card { padding: 0.3rem; border-radius: 8px; }
+    .card-img { height: 80px; }
+    .card-name { font-size: 0.52rem; margin-bottom: 0.2rem; line-height: 1.2; }
+    .card-prices { gap: 0.1rem; }
+    .card-prices .sell { font-size: 0.6rem; }
+    .card-prices .market { font-size: 0.5rem; }
+    .card-prices .discount { font-size: 0.45rem; padding: 1px 3px; }
+    .badge { font-size: 0.42rem; padding: 2px 5px; border-radius: 4px; }
+    .card-img .img-placeholder { font-size: 1.2rem; }
   }
 
   /* MOBILE HEADER FIXES */
@@ -725,20 +741,12 @@ async function loadBanners() {
     const json = JSON.parse(jsonStr);
     const rows = json.table?.rows || [];
     bannerData = rows
-      .map(r => {
-        // gviz คืน .v สำหรับ value, .f สำหรับ formatted — ลองทั้งคู่
-        const getCell = (c) => {
-          if (!c) return '';
-          if (c.p?.url) return String(c.p.url);
-          if (c.v != null && String(c.v).startsWith('http')) return String(c.v);
-          if (c.f != null && String(c.f).startsWith('http')) return String(c.f);
-          if (c.v != null) return String(c.v);
-          return '';
-        };
-        const img  = getCell(r.c?.[0]); // column A = รูปเดียวใช้ทั้งคอมและมือถือ
-        const link = getCell(r.c?.[1]); // column B = ลิงก์ (ถ้ามี)
-        return { img, imgMobile: '', link, caption: '' };
-      })
+      .map(r => ({
+        img: r.c?.[0]?.v || '',       // column A = รูปคอม
+        imgMobile: r.c?.[1]?.v || '', // column B = รูปมือถือ
+        link: r.c?.[2]?.v || '',      // column C = ลิงก์
+        caption: r.c?.[3]?.v || ''    // column D = คำบรรยาย
+      }))
       .filter(b => b.img && b.img.length > 10);
   } catch(e) {
     console.log('No banners:', e);
@@ -756,8 +764,12 @@ function renderBanners() {
   if (!bannerData.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
+  const isMobile = window.innerWidth <= 1024;
   track.innerHTML = bannerData.map((b, i) => {
-    const imgSrc = convertDriveUrl(b.img);
+    const hasMobileImg = b.imgMobile && b.imgMobile.length > 10;
+    const imgSrc = (isMobile && hasMobileImg)
+      ? convertDriveUrl(b.imgMobile)
+      : convertDriveUrl(b.img);
     const onclick = b.link ? "window.open('" + b.link + "','_blank')" : '';
     const cursor = b.link ? 'cursor:pointer' : '';
     const caption = b.caption
@@ -788,9 +800,6 @@ function bannerMove(dir) {
   bannerTimer = setInterval(() => bannerMove(1), 5000);
 }
 
-// อัพเดท slide width เมื่อ resize หน้าจอ
-window.addEventListener('resize', updateBannerPos);
-
 function bannerGo(i) {
   bannerIndex = i;
   updateBannerPos();
@@ -800,17 +809,8 @@ function bannerGo(i) {
 
 function updateBannerPos() {
   const track = document.getElementById('bannerTrack');
-  const wrap = document.getElementById('bannerWrap');
   const dots = document.querySelectorAll('.banner-dot');
-  if (track && wrap) {
-    const w = wrap.offsetWidth;
-    // กำหนดความกว้างของแต่ละ slide ให้เท่ากับ wrap จริงๆ
-    Array.from(track.querySelectorAll('.banner-slide')).forEach(slide => {
-      slide.style.width = w + 'px';
-      slide.style.minWidth = w + 'px';
-    });
-    track.style.transform = `translateX(-${bannerIndex * w}px)`;
-  }
+  if (track) track.style.transform = `translateX(-${bannerIndex * 100}%)`;
   dots.forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
 }
 // ────────────────────────────────────────────────────────────
@@ -879,8 +879,6 @@ async function fetchAndCache() {
     const getVal = (row, j) => {
       if (j < 0 || !row.c || j >= row.c.length || !row.c[j]) return '';
       const cell = row.c[j];
-      // hyperlink URL อาจซ่อนอยู่ใน p.url (gviz เก็บ hyperlink ไว้ที่นี่)
-      if (cell.p?.url) return String(cell.p.url).trim();
       if (cell.v !== null && cell.v !== undefined) return String(cell.v).trim();
       return (cell.f || '').trim();
     };
@@ -935,7 +933,7 @@ function convertDriveUrl(url) {
     const m2 = url.match(/id=([a-zA-Z0-9_-]+)/);
     if (m2) fileId = m2[1];
   }
-  if (fileId) return 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1200';
+  if (fileId) return 'https://lh3.googleusercontent.com/d/' + fileId;
   if (url.includes('googleusercontent.com')) return url;
   return url;
 }
