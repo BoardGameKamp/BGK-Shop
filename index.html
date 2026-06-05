@@ -991,7 +991,7 @@ async function fetchAndCache() {
   filtered = [...PRODUCTS];
   applyFilters();
 }
-function convertDriveUrl(url) {
+function convertDriveUrl(url, size='w400') {
   if (!url || !url.startsWith('http')) return '';
   let fileId = null;
   const m1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
@@ -1000,7 +1000,8 @@ function convertDriveUrl(url) {
     const m2 = url.match(/id=([a-zA-Z0-9_-]+)/);
     if (m2) fileId = m2[1];
   }
-  if (fileId) return 'https://lh3.googleusercontent.com/d/' + fileId;
+  // ใช้ thumbnail API — Drive ย่อให้เองตามขนาดที่กำหนด ไม่ต้องทำรูปใหม่
+  if (fileId) return `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
   if (url.includes('googleusercontent.com')) return url;
   return url;
 }
@@ -1080,7 +1081,8 @@ function renderProducts() {
         <div class="card-img" id="img-wrap-${p.id}">
           ${p.img && p.img.startsWith('http')
             ? `<img src="${convertDriveUrl(p.img)}" class="loaded" alt="${p.name}" 
-                onclick="openLightbox('${convertDriveUrl(p.img)}')"
+                loading="lazy"
+                onclick="openLightbox('${convertDriveUrl(p.img, 'w1200')}')"
                 style="z-index:2;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;right:0;bottom:0;cursor:zoom-in;" 
                 onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">`
             : ''}
