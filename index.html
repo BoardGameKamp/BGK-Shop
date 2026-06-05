@@ -802,7 +802,7 @@ function renderBanners() {
   wrap.style.display = 'block';
 
   track.innerHTML = bannerData.map((b, i) => {
-    const imgSrc = convertDriveUrl(b.img);
+    const imgSrc = convertDriveUrl(b.img, 'w1200'); // banner ใช้รูปใหญ่
     const onclick = b.link ? "window.open('" + b.link + "','_blank')" : '';
     const cursor = b.link ? 'cursor:pointer' : '';
     const caption = b.caption
