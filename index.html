@@ -668,7 +668,11 @@
         <button class="featured-tab" onclick="setFeaturedTab(this, 'budget')">💰 ไม่เกิน ฿500</button>
         <button class="featured-tab" onclick="setFeaturedTab(this, 'new')">✨ มือ 1</button>
       </div>
-      <div class="featured-row" id="featuredRow"></div>
+      <div style="position:relative;">
+        <button onclick="scrollFeatured(-1)" style="position:absolute;left:-16px;top:50%;transform:translateY(-50%);z-index:10;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--text);">‹</button>
+        <div class="featured-row" id="featuredRow"></div>
+        <button onclick="scrollFeatured(1)" style="position:absolute;right:-16px;top:50%;transform:translateY(-50%);z-index:10;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--text);">›</button>
+      </div>
     </div>
     <hr class="featured-divider">
 
@@ -1064,6 +1068,13 @@ let searchQuery = '';
 // ── FEATURED ROW ──────────────────────────────────────────
 let featuredTab = 'sale';
 
+function scrollFeatured(dir) {
+  const row = document.getElementById('featuredRow');
+  if (!row) return;
+  const cardW = row.querySelector('.featured-card')?.offsetWidth || 220;
+  row.scrollBy({ left: dir * (cardW + 16) * 2, behavior: 'smooth' });
+}
+
 function setFeaturedTab(btn, tab) {
   featuredTab = tab;
   document.querySelectorAll('.featured-tab').forEach(b => b.classList.remove('active'));
@@ -1100,19 +1111,45 @@ function renderFeaturedRow() {
   const makeCard = (p) => {
     const imgSrc = convertDriveUrl(p.img, 'w400');
     const disc = getDiscount(p);
+    const isSoldOut = p.status === 'Sold Out';
     return `
-    <div class="featured-card" onclick="openLightbox('${convertDriveUrl(p.img, 'w1200')}')">
-      ${imgSrc
-        ? `<img class="featured-card-img" src="${imgSrc}" alt="${p.name}" loading="lazy"
-            onerror="this.style.display='none'">`
-        : `<div class="featured-card-img-placeholder">${getEmoji(p.name)}</div>`
-      }
-      <div class="featured-card-body">
-        <div class="featured-card-name">${p.name}</div>
-        <div class="featured-card-price">
-          ฿${p.sellPrice.toLocaleString()}
-          ${disc > 0 ? `<span style="font-size:0.55rem;background:#e74c3c;color:white;padding:1px 4px;border-radius:3px;margin-left:3px">-${disc}%</span>` : ''}
+    <div class="product-card featured-card ${isSoldOut ? 'sold-out' : ''}">
+      <div class="card-img">
+        ${imgSrc
+          ? `<img src="${imgSrc}" class="loaded" alt="${p.name}" loading="lazy"
+              onclick="openLightbox('${convertDriveUrl(p.img, 'w1200')}')"
+              style="z-index:2;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;cursor:zoom-in;"
+              onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">`
+          : ''
+        }
+        <span class="img-placeholder${imgSrc ? ' hidden' : ''}">${getEmoji(p.name)}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-top-badges">
+          <span class="card-condition ${
+            p.condition.includes('1.5') ? 'cond-15' :
+            p.condition.includes('1') && !p.condition.includes('2') ? 'cond-1' :
+            p.condition.includes('2') ? 'cond-2' : ''
+          }">${p.condition}</span>
+          <span class="card-status ${isSoldOut ? 'sold-out' : 'on-sale'}">${isSoldOut ? 'Sold Out' : 'On Sale'}</span>
         </div>
+        <div class="card-name">${p.name.trim()}</div>
+        <div class="card-lang">${p.lang === 'ภาษาไทย' ? '🇹🇭' : p.lang === 'English' ? '🇬🇧' : '🌐'} ${p.lang}</div>
+        <div class="card-prices">
+          ${p.marketPrice > 0 ? `<div class="price-market">ราคาตลาด ฿${p.marketPrice.toLocaleString()}</div>` : ''}
+          <div>
+            <span class="price-sell">฿${p.sellPrice.toLocaleString()}</span>
+            ${disc > 0 ? `<span class="price-discount">-${disc}%</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        ${isSoldOut
+          ? `<button class="add-cart-btn" disabled>หมดแล้ว</button>`
+          : `<button class="add-cart-btn fb-chat-btn" onclick="openFBChat('${p.name}', '${p.condition}', ${p.sellPrice})">
+              💬 สอบถาม
+            </button>`
+        }
       </div>
     </div>`;
   };
