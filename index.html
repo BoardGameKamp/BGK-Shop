@@ -406,13 +406,9 @@
   .empty-cart { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.88rem; }
 
   /* ADMIN TAB */
-  .admin-section { display: none; }
   .admin-section.show { display: block; }
   .shop-section { display: block; }
   .shop-section.hide { display: none; }
-
-  .admin-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
-  .admin-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
   .admin-table th {
     background: var(--surface2); padding: 0.7rem 0.9rem; text-align: left;
     color: var(--text-muted); font-weight: 500; white-space: nowrap;
@@ -426,13 +422,6 @@
   .badge-green { background: rgba(0,200,151,0.15); color: var(--green); }
   .badge-red { background: rgba(233,69,96,0.15); color: var(--accent); }
   .badge-yellow { background: rgba(245,166,35,0.15); color: var(--accent2); }
-
-  .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-  .admin-stat-card {
-    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 1.1rem;
-  }
-  .admin-stat-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; }
-  .admin-stat-value { font-size: 1.5rem; font-weight: 700; }
 
   /* no results */
   .no-results { text-align: center; padding: 3rem; color: var(--text-muted); }
@@ -595,7 +584,7 @@
 <div class="tabs">
   <div class="tabs-inner">
     <button class="tab-btn active" onclick="showTab('shop', this)">🏪 ร้านค้า</button>
-    <button class="tab-btn" onclick="showTab('admin', this)">⚙️ Admin</button>
+
   </div>
 </div>
 
@@ -642,28 +631,7 @@
   </div>
 
   <!-- ADMIN SECTION -->
-  <div id="adminSection" class="admin-section">
-    <div class="admin-stats" id="adminStats"></div>
-    <div style="display:flex;gap:0.7rem;margin-bottom:1rem;align-items:center;">
-      <input type="text" class="price-input" id="adminSearch" placeholder="🔍 ค้นหา..." oninput="renderAdmin()" style="width:220px;padding:0.5rem 0.8rem;">
-      <select class="filter-select" id="adminStatus" onchange="renderAdmin()">
-        <option value="">ทั้งหมด</option>
-        <option value="On Sale">On Sale</option>
-        <option value="Sold Out">Sold Out</option>
-      </select>
-    </div>
-    <div class="admin-table-wrap">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>#</th><th>ชื่อเกม</th><th>ภาษา</th><th>สภาพ</th><th>สถานะ</th>
-            <th>ราคาตลาด</th><th>ราคาขาย</th><th>ส่วนลด</th>
-          </tr>
-        </thead>
-        <tbody id="adminTableBody"></tbody>
-      </table>
-    </div>
-  </div>
+  
 </div>
 
 <!-- CART MODAL -->
@@ -900,7 +868,7 @@ async function loadFromSheets() {
     if (loadingEl) loadingEl.style.display = 'none';
     filtered = [...PRODUCTS];
     applyFilters();
-    setTimeout(() => renderAdmin(), 100);
+    
     // โหลดใหม่ใน background เพื่ออัปเดต
     fetchAndCache();
     return;
@@ -980,7 +948,7 @@ async function fetchAndCache() {
     if (loadingEl) loadingEl.style.display = 'none';
     filtered = [...PRODUCTS];
     applyFilters();
-    setTimeout(() => renderAdmin(), 200);
+    
     return;
 
   } catch(e) {
@@ -1439,46 +1407,6 @@ function closeSuccess() {
 }
 
 // ADMIN
-function renderAdmin() {
-  const q = document.getElementById('adminSearch').value.toLowerCase();
-  const s = document.getElementById('adminStatus').value;
-  const items = PRODUCTS.filter(p => {
-    if (q && !p.name.toLowerCase().includes(q)) return false;
-    if (s && p.status !== s) return false;
-    return true;
-  });
-
-  const onSale = PRODUCTS.filter(p => p.status === 'On Sale').length;
-  const soldOut = PRODUCTS.filter(p => p.status === 'Sold Out').length;
-  const totalVal = PRODUCTS.filter(p => p.status === 'On Sale').reduce((s,p) => s + p.sellPrice, 0);
-  const avgDisc = Math.round(PRODUCTS.filter(p => p.marketPrice > 0 && p.sellPrice > 0).reduce((s,p) => s + getDiscount(p), 0) / PRODUCTS.filter(p => p.marketPrice > 0).length);
-
-  document.getElementById('adminStats').innerHTML = `
-    <div class="admin-stat-card"><div class="admin-stat-label">สินค้าทั้งหมด</div><div class="admin-stat-value">${PRODUCTS.length}</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-label">On Sale</div><div class="admin-stat-value" style="color:var(--green)">${onSale}</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-label">Sold Out</div><div class="admin-stat-value" style="color:var(--accent)">${soldOut}</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-label">มูลค่าสต็อก (เฉลี่ย)</div><div class="admin-stat-value" style="color:var(--accent2)">฿${Math.round(totalVal/onSale).toLocaleString()}</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-label">ส่วนลดเฉลี่ย</div><div class="admin-stat-value">${avgDisc}%</div></div>
-  `;
-
-  const body = document.getElementById('adminTableBody');
-  body.innerHTML = items.slice(0, 200).map(p => {
-    const disc = getDiscount(p);
-    return `<tr>
-      <td style="color:var(--text-muted)">${p.id}</td>
-      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.name}">${p.name.trim()}</td>
-      <td><span class="badge badge-yellow">${p.lang}</span></td>
-      <td>${p.condition}</td>
-      <td><span class="badge ${p.status==='On Sale'?'badge-green':'badge-red'}">${p.status}</span></td>
-      <td style="color:var(--text-muted)">${p.marketPrice > 0 ? '฿'+p.marketPrice.toLocaleString() : '-'}</td>
-      <td style="color:var(--accent2);font-weight:600">฿${p.sellPrice.toLocaleString()}</td>
-      <td>${disc > 0 ? `<span style="color:var(--green)">-${disc}%</span>` : '-'}</td>
-    </tr>`;
-  }).join('');
-}
-
-const ADMIN_PASS = 'Kitsada110358';
-let adminUnlocked = false;
 
 function showTab(tab, btn) {
   if (tab === 'admin' && !adminUnlocked) {
