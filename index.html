@@ -604,24 +604,20 @@
         <option value="English">English</option>
         <option value="อื่นๆ">อื่นๆ</option>
       </select>
-      <select class="filter-select" id="conditionFilter" onchange="applyFilters()">
-        <option value="">สภาพทั้งหมด</option>
-        <option value="มือ 1">มือ 1</option>
-        <option value="มือ 1.5">มือ 1.5</option>
-        <option value="มือ 2">มือ 2</option>
-      </select>
       <select class="filter-select" id="sortFilter" onchange="applyFilters()">
         <option value="name">เรียงตามชื่อ</option>
         <option value="price-asc">ราคา: ต่ำ → สูง</option>
         <option value="price-desc">ราคา: สูง → ต่ำ</option>
-        <option value="discount">ส่วนลดมากที่สุด</option>
+        <option value="discount">ลดมากที่สุด</option>
       </select>
-      <div class="price-range-wrap">
-        <input type="number" class="price-input" id="priceMin" placeholder="ราคาต่ำสุด" oninput="applyFilters()">
-        <span style="color:var(--text-muted);font-size:0.8rem">—</span>
-        <input type="number" class="price-input" id="priceMax" placeholder="ราคาสูงสุด" oninput="applyFilters()">
-      </div>
-      <div class="stats-bar">
+      <select class="filter-select" id="budgetFilter" onchange="applyFilters()">
+        <option value="">งบไม่เกิน</option>
+        <option value="500">฿500</option>
+        <option value="1000">฿1,000</option>
+        <option value="1500">฿1,500</option>
+        <option value="2000">฿2,000</option>
+      </select>
+      <div class="stats-bar" style="width:100%">
         <div class="stat-pill">แสดง <b id="showCount">0</b> / <b id="totalCount">0</b> รายการ</div>
       </div>
     </div>
@@ -997,18 +993,14 @@ function getDiscount(p) {
 function applyFilters() {
   const status = document.getElementById('statusFilter').value;
   const lang = document.getElementById('langFilter').value;
-  const cond = document.getElementById('conditionFilter').value;
   const sort = document.getElementById('sortFilter').value;
-  const minP = parseInt(document.getElementById('priceMin').value) || 0;
-  const maxP = parseInt(document.getElementById('priceMax').value) || Infinity;
+  const budget = parseInt(document.getElementById('budgetFilter').value) || Infinity;
 
   filtered = PRODUCTS.filter(p => {
     if (status && p.status !== status) return false;
     if (lang && p.lang !== lang) return false;
-    if (cond && p.condition !== cond) return false;
     if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    if (p.sellPrice < minP) return false;
-    if (p.sellPrice > maxP) return false;
+    if (p.sellPrice > budget) return false;
     return true;
   });
 
