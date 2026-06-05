@@ -977,6 +977,16 @@ let filtered = [...PRODUCTS];
 let cart = [];
 let searchQuery = '';
 
+// normalize สำหรับค้นหา — ตัดวรรณยุกต์ไทยและแปลงเป็น lowercase
+function normalizeText(str) {
+  if (!str) return '';
+  // ลบวรรณยุกต์ไทย: ่ ้ ๊ ๋ ็ ์ ํ ๎
+  return str
+    .replace(/[่้๊๋็์ํ๎]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 function getEmoji(name) {
   let h = 0;
   for (let c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
@@ -999,7 +1009,7 @@ function applyFilters() {
   filtered = PRODUCTS.filter(p => {
     if (status && p.status !== status) return false;
     if (lang && p.lang !== lang) return false;
-    if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (searchQuery && !normalizeText(p.name).includes(normalizeText(searchQuery))) return false;
     if (p.sellPrice > budget) return false;
     return true;
   });
