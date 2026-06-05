@@ -518,7 +518,7 @@
     box-shadow: 0 0 16px rgba(233,69,96,0.8) !important;
   }
   @media (max-width: 640px) {
-    .featured-card { width: calc((100vw - 1.6rem - 0.8rem) / 3); }
+    .featured-card { width: calc((100vw - 1.6rem - 0.8rem) / 3) !important; }
   }
   .featured-divider {
     border: none; border-top: 1px solid var(--border);
@@ -1086,8 +1086,7 @@ function renderFeaturedRow() {
     return;
   }
 
-  // วนลูป: ต่อ items 3 รอบเพื่อให้เลื่อนวนได้ไม่มีสิ้นสุด
-  const loopItems = [...items, ...items, ...items];
+  const loopItems = items; // ใช้แค่รายการจริง ไม่วนซ้ำ
 
   const makeCard = (p) => {
     const imgSrc = convertDriveUrl(p.img, 'w400');
@@ -1137,20 +1136,7 @@ function renderFeaturedRow() {
 
   row.innerHTML = loopItems.map(makeCard).join('');
 
-  // เลื่อนไปที่จุดกลาง (รอบที่ 2) เพื่อให้เลื่อนได้ทั้งซ้ายและขวา
-  const cardW = row.querySelector('.featured-card')?.offsetWidth || 110;
-  const gap = 11;
-  row.scrollLeft = items.length * (cardW + gap);
-
-  // วนลูปอัตโนมัติเมื่อเลื่อนถึงขอบ
-  row.onscroll = () => {
-    const totalW = items.length * (cardW + gap);
-    if (row.scrollLeft <= 0) {
-      row.scrollLeft = totalW;
-    } else if (row.scrollLeft >= totalW * 2) {
-      row.scrollLeft = totalW;
-    }
-  };
+  row.scrollLeft = 0;
 }
 
 function normalizeText(str) {
