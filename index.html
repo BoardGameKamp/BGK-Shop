@@ -504,21 +504,23 @@
   }
   .featured-row::-webkit-scrollbar { display: none; }
   .featured-card {
-    flex-shrink: 0; width: calc((100vw - 2.4rem - 1.4rem) / 3);
-    max-width: 200px;
-    background: var(--card); border-radius: 10px;
+    flex-shrink: 0;
+    width: calc((100vw - 2.4rem - 0.8rem) / 3);
+    max-width: 220px;
+    background: var(--card-bg); border-radius: 14px;
     border: 1px solid var(--border); overflow: hidden;
     cursor: pointer; scroll-snap-align: start;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column;
   }
-  .featured-card:hover { transform: translateY(-2px); }
+  .featured-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); border-color: rgba(233,69,96,0.3); }
   .featured-card-img {
     width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;
   }
   .featured-card-img-placeholder {
     width: 100%; aspect-ratio: 1/1;
-    background: var(--primary);
-    display: flex; align-items: center; justify-content: center; font-size: 2rem;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center; font-size: 2.2rem;
   }
   .featured-card-body { padding: 0.4rem 0.5rem; }
   .featured-card-name {
@@ -1017,7 +1019,7 @@ async function fetchAndCache() {
     if (loadingEl) loadingEl.style.display = 'none';
     filtered = [...PRODUCTS];
     applyFilters();
-    
+    renderFeaturedRow();
     return;
 
   } catch(e) {
@@ -1027,6 +1029,7 @@ async function fetchAndCache() {
   if (loadingEl) loadingEl.style.display = 'none';
   filtered = [...PRODUCTS];
   applyFilters();
+  renderFeaturedRow();
 }
 function convertDriveUrl(url, size='w400') {
   if (!url || !url.startsWith('http')) return '';
