@@ -611,11 +611,12 @@
         <option value="discount">ลดมากที่สุด</option>
       </select>
       <select class="filter-select" id="budgetFilter" onchange="applyFilters()">
-        <option value="">งบไม่เกิน</option>
-        <option value="500">฿500</option>
-        <option value="1000">฿1,000</option>
-        <option value="1500">฿1,500</option>
-        <option value="2000">฿2,000</option>
+        <option value="">ช่วงราคา</option>
+        <option value="0-500">฿0 - ฿500</option>
+        <option value="500-1000">฿500 - ฿1,000</option>
+        <option value="1000-1500">฿1,000 - ฿1,500</option>
+        <option value="1500-2000">฿1,500 - ฿2,000</option>
+        <option value="2000+">฿2,000+</option>
       </select>
       <div class="stats-bar" style="width:100%">
         <div class="stat-pill">แสดง <b id="showCount">0</b> / <b id="totalCount">0</b> รายการ</div>
@@ -1004,13 +1005,19 @@ function applyFilters() {
   const status = document.getElementById('statusFilter').value;
   const lang = document.getElementById('langFilter').value;
   const sort = document.getElementById('sortFilter').value;
-  const budget = parseInt(document.getElementById('budgetFilter').value) || Infinity;
+  const budgetVal = document.getElementById('budgetFilter').value;
+  let minB = 0, maxB = Infinity;
+  if (budgetVal === '0-500')     { minB = 0;    maxB = 500; }
+  if (budgetVal === '500-1000')  { minB = 500;  maxB = 1000; }
+  if (budgetVal === '1000-1500') { minB = 1000; maxB = 1500; }
+  if (budgetVal === '1500-2000') { minB = 1500; maxB = 2000; }
+  if (budgetVal === '2000+')     { minB = 2000; maxB = Infinity; }
 
   filtered = PRODUCTS.filter(p => {
     if (status && p.status !== status) return false;
     if (lang && p.lang !== lang) return false;
     if (searchQuery && !normalizeText(p.name).includes(normalizeText(searchQuery))) return false;
-    if (p.sellPrice > budget) return false;
+    if (budgetVal && (p.sellPrice < minB || p.sellPrice > maxB)) return false;
     return true;
   });
 
