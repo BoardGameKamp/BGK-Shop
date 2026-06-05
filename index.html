@@ -479,7 +479,10 @@
 
   /* FEATURED ROW */
   .featured-section {
-    padding: 1rem 1.2rem 0.5rem;
+    padding: 0.8rem 0.6rem 0.5rem;
+  }
+  .featured-row {
+    gap: 0.4rem;
   }
   .featured-tabs {
     display: flex; gap: 0.5rem; margin-bottom: 0.8rem;
@@ -505,15 +508,16 @@
   .featured-row::-webkit-scrollbar { display: none; }
   .featured-card {
     flex-shrink: 0;
-    width: calc((100vw - 2.4rem - 0.8rem) / 3);
-    max-width: 220px;
+    width: calc((100vw - 1.6rem - 0.8rem) / 3);
     background: var(--card-bg); border-radius: 14px;
-    border: 1px solid var(--border); overflow: hidden;
+    border: 2px solid #e94560;
+    box-shadow: 0 0 8px rgba(233,69,96,0.4);
+    overflow: hidden;
     cursor: pointer; scroll-snap-align: start;
     transition: transform 0.2s, box-shadow 0.2s;
     display: flex; flex-direction: column;
   }
-  .featured-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); border-color: rgba(233,69,96,0.3); }
+  .featured-card:hover { transform: translateY(-3px); box-shadow: 0 0 16px rgba(233,69,96,0.8); }
   .featured-card-img {
     width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;
   }
