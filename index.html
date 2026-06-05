@@ -477,6 +477,62 @@
     cursor: pointer;
   }
 
+  /* FEATURED ROW */
+  .featured-section {
+    padding: 1rem 1.2rem 0.5rem;
+  }
+  .featured-tabs {
+    display: flex; gap: 0.5rem; margin-bottom: 0.8rem;
+    overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .featured-tabs::-webkit-scrollbar { display: none; }
+  .featured-tab {
+    flex-shrink: 0; padding: 0.35rem 0.9rem;
+    border-radius: 20px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text-muted);
+    font-size: 0.78rem; font-family: 'Prompt', sans-serif;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .featured-tab.active {
+    background: var(--accent); color: white; border-color: var(--accent);
+    font-weight: 600;
+  }
+  .featured-row {
+    display: flex; gap: 0.7rem; overflow-x: auto;
+    scrollbar-width: none; -ms-overflow-style: none;
+    padding-bottom: 0.5rem; scroll-snap-type: x mandatory;
+  }
+  .featured-row::-webkit-scrollbar { display: none; }
+  .featured-card {
+    flex-shrink: 0; width: 130px;
+    background: var(--card); border-radius: 10px;
+    border: 1px solid var(--border); overflow: hidden;
+    cursor: pointer; scroll-snap-align: start;
+    transition: transform 0.2s;
+  }
+  .featured-card:hover { transform: translateY(-2px); }
+  .featured-card-img {
+    width: 100%; height: 100px; object-fit: cover; display: block;
+  }
+  .featured-card-body { padding: 0.4rem 0.5rem; }
+  .featured-card-name {
+    font-size: 0.65rem; font-weight: 600; color: var(--text);
+    line-height: 1.3; margin-bottom: 0.2rem;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .featured-card-price {
+    font-size: 0.7rem; font-weight: 700; color: var(--accent);
+  }
+  .featured-divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 0.8rem 0 0;
+  }
+  @media (max-width: 640px) {
+    .featured-card { width: 110px; }
+    .featured-card-img { height: 85px; }
+  }
+
   @media (max-width: 640px) {
     .header-inner { gap: 0.6rem; }
     .logo-text .logo-sub { display: none; }
@@ -592,6 +648,19 @@
 
   <!-- SHOP SECTION -->
   <div id="shopSection" class="shop-section">
+
+    <!-- FEATURED ROW -->
+    <div class="featured-section">
+      <div class="featured-tabs">
+        <button class="featured-tab active" onclick="setFeaturedTab(this, 'sale')">🔥 ลดแรง</button>
+        <button class="featured-tab" onclick="setFeaturedTab(this, 'thai')">🇹🇭 ภาษาไทย</button>
+        <button class="featured-tab" onclick="setFeaturedTab(this, 'budget')">💰 ไม่เกิน ฿500</button>
+        <button class="featured-tab" onclick="setFeaturedTab(this, 'new')">✨ มือ 1</button>
+      </div>
+      <div class="featured-row" id="featuredRow"></div>
+    </div>
+    <hr class="featured-divider">
+
     <div class="filters-row">
       <select class="filter-select" id="statusFilter" onchange="applyFilters()">
         <option value="">สถานะทั้งหมด</option>
@@ -862,6 +931,7 @@ async function loadFromSheets() {
   if (cached && cacheAge < CACHE_TTL) {
     PRODUCTS = JSON.parse(cached);
     console.log(`⚡ โหลดจาก Cache: ${PRODUCTS.length} รายการ`);
+    renderFeaturedRow();
     if (loadingEl) loadingEl.style.display = 'none';
     filtered = [...PRODUCTS];
     applyFilters();
@@ -979,6 +1049,61 @@ let cart = [];
 let searchQuery = '';
 
 // normalize สำหรับค้นหา — ตัดวรรณยุกต์ไทยและแปลงเป็น lowercase
+// ── FEATURED ROW ──────────────────────────────────────────
+let featuredTab = 'sale';
+
+function setFeaturedTab(btn, tab) {
+  featuredTab = tab;
+  document.querySelectorAll('.featured-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderFeaturedRow();
+}
+
+function renderFeaturedRow() {
+  const row = document.getElementById('featuredRow');
+  if (!row || !PRODUCTS.length) return;
+
+  let items = [];
+  if (featuredTab === 'sale') {
+    items = [...PRODUCTS]
+      .filter(p => p.status === 'On Sale' && getDiscount(p) > 0)
+      .sort((a, b) => getDiscount(b) - getDiscount(a))
+      .slice(0, 20);
+  } else if (featuredTab === 'thai') {
+    items = PRODUCTS.filter(p => p.lang === 'ภาษาไทย' && p.status === 'On Sale').slice(0, 20);
+  } else if (featuredTab === 'budget') {
+    items = PRODUCTS.filter(p => p.sellPrice <= 500 && p.status === 'On Sale')
+      .sort((a, b) => a.sellPrice - b.sellPrice).slice(0, 20);
+  } else if (featuredTab === 'new') {
+    items = PRODUCTS.filter(p => p.condition.includes('1') && !p.condition.includes('2') && p.status === 'On Sale').slice(0, 20);
+  }
+
+  if (!items.length) {
+    row.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;padding:0.5rem">ไม่มีสินค้าในหมวดนี้</div>';
+    return;
+  }
+
+  row.innerHTML = items.map(p => {
+    const imgSrc = convertDriveUrl(p.img, 'w400');
+    const disc = getDiscount(p);
+    return `
+    <div class="featured-card" onclick="openLightbox('${convertDriveUrl(p.img, 'w1200')}')">
+      ${imgSrc
+        ? `<img class="featured-card-img" src="${imgSrc}" alt="${p.name}" loading="lazy"
+            onerror="this.style.display='none'">`
+        : `<div class="featured-card-img" style="background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:2rem">${getEmoji(p.name)}</div>`
+      }
+      <div class="featured-card-body">
+        <div class="featured-card-name">${p.name}</div>
+        <div class="featured-card-price">
+          ฿${p.sellPrice.toLocaleString()}
+          ${disc > 0 ? `<span style="font-size:0.55rem;background:#e74c3c;color:white;padding:1px 4px;border-radius:3px;margin-left:3px">-${disc}%</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function normalizeText(str) {
   if (!str) return '';
   // ลบวรรณยุกต์ไทย: ่ ้ ๊ ๋ ็ ์ ํ ๎
