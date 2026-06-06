@@ -149,6 +149,42 @@
   }
   .theme-toggle-btn:hover { transform: scale(1.1); }
 
+  /* POPUP PROMOTION */
+  #promoPopup {
+    display: none; position: fixed; inset: 0; z-index: 99999;
+    background: rgba(0,0,0,0.85);
+    align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  #promoPopup.open { display: flex; }
+  #promoPopup .popup-box {
+    position: relative; max-width: 480px; width: 100%;
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    animation: popupIn 0.3s ease;
+  }
+  @keyframes popupIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+  #promoPopup .popup-img {
+    width: 100%; display: block; cursor: pointer;
+  }
+  #promoPopup .popup-close {
+    position: absolute; top: 10px; right: 10px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(0,0,0,0.6); border: none;
+    color: white; font-size: 1.2rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  #promoPopup .popup-close:hover { background: rgba(233,69,96,0.8); }
+  #promoPopup .popup-skip {
+    text-align: center; margin-top: 0.8rem;
+    color: rgba(255,255,255,0.6); font-size: 0.75rem;
+    cursor: pointer; text-decoration: underline;
+  }
+
   /* BACK TO TOP */
   .back-to-top {
     position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 500;
@@ -616,6 +652,17 @@
 </header>
 
 <!-- BANNER SLIDESHOW -->
+    <!-- POPUP PROMOTION -->
+    <div id="promoPopup">
+      <div>
+        <div class="popup-box">
+          <img id="promoPopupImg" class="popup-img" src="" alt="โปรโมชั่น" onclick="handlePromoClick()">
+          <button class="popup-close" onclick="closePromoPopup()">✕</button>
+        </div>
+        <div class="popup-skip" onclick="closePromoPopup(true)">ไม่ต้องแสดงอีก 24 ชั่วโมง</div>
+      </div>
+    </div>
+
     <!-- BACK TO TOP -->
     <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
@@ -813,11 +860,19 @@ async function loadBanners() {
         };
         const img  = getUrl(r.c?.[0]); // A = รูป
         const link = getUrl(r.c?.[1]); // B = ลิงก์
+        const popup     = getUrl(r.c?.[2]); // C = รูป popup
+        const popupLink = getUrl(r.c?.[3]); // D = ลิงก์ popup
         console.log('🖼 Banner:', img.slice(0,60), '| link:', link.slice(0,40));
-        return { img, imgMobile: '', link, caption: '' };
+        return { img, imgMobile: '', link, caption: '', popup, popupLink };
       })
       .filter(b => b.img && b.img.length > 10);
     console.log('✅ Banner count:', bannerData.length);
+
+    // แสดง Popup จากแถวแรกที่มีรูป popup
+    const popupData = bannerData.find(b => b.popup && b.popup.length > 10);
+    if (popupData) {
+      setTimeout(() => showPromoPopup(convertDriveUrl(popupData.popup, 'w800'), popupData.popupLink), 1500);
+    }
   } catch(e) {
     console.log('No banners:', e);
     bannerData = [];
@@ -1049,6 +1104,36 @@ let cart = [];
 let searchQuery = '';
 
 // normalize สำหรับค้นหา — ตัดวรรณยุกต์ไทยและแปลงเป็น lowercase
+// ── POPUP PROMOTION ───────────────────────────────────────
+let promoLink = '';
+
+function showPromoPopup(imgUrl, link) {
+  // เช็ค 24 ชั่วโมง
+  const skipped = localStorage.getItem('promoSkipped');
+  if (skipped && Date.now() - parseInt(skipped) < 86400000) return;
+
+  const popup = document.getElementById('promoPopup');
+  const img = document.getElementById('promoPopupImg');
+  if (!popup || !img || !imgUrl) return;
+
+  promoLink = link || '';
+  img.src = imgUrl;
+  popup.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePromoPopup(skipDay = false) {
+  const popup = document.getElementById('promoPopup');
+  if (popup) popup.classList.remove('open');
+  document.body.style.overflow = '';
+  if (skipDay) localStorage.setItem('promoSkipped', Date.now());
+}
+
+function handlePromoClick() {
+  if (promoLink) window.open(promoLink, '_blank');
+  closePromoPopup();
+}
+
 // ── FEATURED ROW ──────────────────────────────────────────
 let featuredTab = 'sale';
 
