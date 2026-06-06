@@ -170,20 +170,16 @@
   #promoPopup .popup-img {
     width: 100%; display: block; cursor: pointer;
   }
-  #promoPopup .popup-close {
-    position: absolute; top: 10px; right: 10px;
-    width: 36px; height: 36px; border-radius: 50%;
-    background: rgba(0,0,0,0.6); border: none;
-    color: white; font-size: 1.2rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s;
+  #promoPopup .popup-close-btn {
+    display: block; width: 100%; margin-top: 0.8rem;
+    padding: 0.65rem 1rem; border-radius: 10px;
+    background: #e94560; border: 2px solid #e94560;
+    color: white; font-size: 0.9rem; font-weight: 700;
+    font-family: 'Prompt', sans-serif;
+    cursor: pointer; transition: background 0.2s;
+    letter-spacing: 0.03em;
   }
-  #promoPopup .popup-close:hover { background: rgba(233,69,96,0.8); }
-  #promoPopup .popup-skip {
-    text-align: center; margin-top: 0.8rem;
-    color: rgba(255,255,255,0.6); font-size: 0.75rem;
-    cursor: pointer; text-decoration: underline;
-  }
+  #promoPopup .popup-close-btn:hover { background: #c0392b; border-color: #c0392b; }
 
   /* BACK TO TOP */
   .back-to-top {
@@ -657,9 +653,8 @@
       <div>
         <div class="popup-box">
           <img id="promoPopupImg" class="popup-img" src="" alt="โปรโมชั่น" onclick="handlePromoClick()">
-          <button class="popup-close" onclick="closePromoPopup()">✕</button>
         </div>
-        <div class="popup-skip" onclick="closePromoPopup(true)">ไม่ต้องแสดงอีก 24 ชั่วโมง</div>
+        <button class="popup-close-btn" onclick="closePromoPopup()">ปิดหน้าต่าง</button>
       </div>
     </div>
 
@@ -1109,8 +1104,8 @@ let promoLink = '';
 
 function showPromoPopup(imgUrl, link) {
   // เช็ค 24 ชั่วโมง
-  const skipped = localStorage.getItem('promoSkipped');
-  if (skipped && Date.now() - parseInt(skipped) < 86400000) return;
+  const skipped = sessionStorage.getItem('promoShown');
+  if (skipped) return;
 
   const popup = document.getElementById('promoPopup');
   const img = document.getElementById('promoPopupImg');
@@ -1126,7 +1121,7 @@ function closePromoPopup(skipDay = false) {
   const popup = document.getElementById('promoPopup');
   if (popup) popup.classList.remove('open');
   document.body.style.overflow = '';
-  if (skipDay) localStorage.setItem('promoSkipped', Date.now());
+  sessionStorage.setItem('promoShown', '1');
 }
 
 function handlePromoClick() {
