@@ -501,24 +501,26 @@
     font-weight: 600;
   }
   .featured-row {
-    display: flex; gap: 0.7rem; overflow-x: auto;
+    display: flex; gap: 0.6rem; overflow-x: auto;
     scrollbar-width: none; -ms-overflow-style: none;
-    padding-bottom: 0.5rem; scroll-snap-type: x mandatory;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
   }
   .featured-row::-webkit-scrollbar { display: none; }
-  /* featured-card ใช้ product-card CSS เดิมทั้งหมด เพิ่มแค่ width + border แดง */
   .featured-card {
     flex-shrink: 0;
-    width: 220px;
-    scroll-snap-align: start;
-    border: 2px solid #e94560 !important;
-    box-shadow: 0 0 8px rgba(233,69,96,0.4) !important;
+    width: 130px;
+    background: var(--card-bg); border-radius: 10px;
+    border: 2px solid #e94560;
+    box-shadow: 0 0 6px rgba(233,69,96,0.35);
+    overflow: hidden; cursor: pointer;
+    transition: transform 0.2s;
   }
-  .featured-card:hover {
-    box-shadow: 0 0 16px rgba(233,69,96,0.8) !important;
-  }
+  .featured-card .card-img { height: 100px; }
+  .featured-card:active { transform: scale(0.97); }
   @media (max-width: 640px) {
-    .featured-card { width: calc((100vw - 1.6rem - 0.8rem) / 3) !important; }
+    .featured-card { width: 110px; }
+    .featured-card .card-img { height: 85px; }
   }
   .featured-divider {
     border: none; border-top: 1px solid var(--border);
@@ -1092,44 +1094,31 @@ function renderFeaturedRow() {
     const imgSrc = convertDriveUrl(p.img, 'w400');
     const disc = getDiscount(p);
     const isSoldOut = p.status === 'Sold Out';
+    const condClass = p.condition.includes('1.5') ? 'cond-15' :
+      p.condition.includes('1') && !p.condition.includes('2') ? 'cond-1' :
+      p.condition.includes('2') ? 'cond-2' : '';
     return `
-    <div class="product-card featured-card ${isSoldOut ? 'sold-out' : ''}">
+    <div class="featured-card" onclick="openLightbox('${convertDriveUrl(p.img, 'w1200')}')">
       <div class="card-img">
         ${imgSrc
           ? `<img src="${imgSrc}" class="loaded" alt="${p.name}" loading="lazy"
-              onclick="openLightbox('${convertDriveUrl(p.img, 'w1200')}')"
-              style="z-index:2;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;cursor:zoom-in;"
+              style="z-index:2;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;"
               onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">`
           : ''
         }
         <span class="img-placeholder${imgSrc ? ' hidden' : ''}">${getEmoji(p.name)}</span>
       </div>
-      <div class="card-body">
-        <div class="card-top-badges">
-          <span class="card-condition ${
-            p.condition.includes('1.5') ? 'cond-15' :
-            p.condition.includes('1') && !p.condition.includes('2') ? 'cond-1' :
-            p.condition.includes('2') ? 'cond-2' : ''
-          }">${p.condition}</span>
-          <span class="card-status ${isSoldOut ? 'sold-out' : 'on-sale'}">${isSoldOut ? 'Sold Out' : 'On Sale'}</span>
+      <div class="card-body" style="padding:0.3rem 0.4rem;">
+        <div style="display:flex;gap:0.2rem;margin-bottom:0.2rem;flex-wrap:wrap;">
+          <span class="card-condition ${condClass}" style="font-size:0.48rem;padding:1px 4px;">${p.condition}</span>
+          <span class="card-status ${isSoldOut ? 'sold-out' : 'on-sale'}" style="font-size:0.48rem;padding:1px 4px;">${isSoldOut ? 'Sold Out' : 'On Sale'}</span>
         </div>
-        <div class="card-name">${p.name.trim()}</div>
-        <div class="card-lang">${p.lang === 'ภาษาไทย' ? '🇹🇭' : p.lang === 'English' ? '🇬🇧' : '🌐'} ${p.lang}</div>
-        <div class="card-prices">
-          ${p.marketPrice > 0 ? `<div class="price-market">ราคาตลาด ฿${p.marketPrice.toLocaleString()}</div>` : ''}
-          <div>
-            <span class="price-sell">฿${p.sellPrice.toLocaleString()}</span>
-            ${disc > 0 ? `<span class="price-discount">-${disc}%</span>` : ''}
-          </div>
+        <div class="card-name" style="font-size:0.58rem;line-height:1.2;margin-bottom:0.15rem;">${p.name.trim()}</div>
+        <div class="card-lang" style="font-size:0.52rem;margin-bottom:0.15rem;">${p.lang === 'ภาษาไทย' ? '🇹🇭' : p.lang === 'English' ? '🇬🇧' : '🌐'} ${p.lang}</div>
+        <div style="display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">
+          <span class="price-sell" style="font-size:0.65rem;">฿${p.sellPrice.toLocaleString()}</span>
+          ${disc > 0 ? `<span class="price-discount" style="font-size:0.48rem;">-${disc}%</span>` : ''}
         </div>
-      </div>
-      <div class="card-footer">
-        ${isSoldOut
-          ? `<button class="add-cart-btn" disabled>หมดแล้ว</button>`
-          : `<button class="add-cart-btn fb-chat-btn" onclick="openFBChat('${p.name}', '${p.condition}', ${p.sellPrice})">
-              💬 สอบถาม
-            </button>`
-        }
       </div>
     </div>`;
   };
@@ -1193,6 +1182,11 @@ function applyFilters() {
 
 function handleSearch() {
   searchQuery = document.getElementById('searchInput').value;
+  // ซ่อน featured row เมื่อค้นหา
+  const featuredSection = document.querySelector('.featured-section');
+  const featuredDivider = document.querySelector('.featured-divider');
+  if (featuredSection) featuredSection.style.display = searchQuery ? 'none' : '';
+  if (featuredDivider) featuredDivider.style.display = searchQuery ? 'none' : '';
   applyFilters();
 }
 
